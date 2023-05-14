@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Train Seat Booking System</title>
+	<style>
+		/* Styling for seats */
+		.seat {
+			width: 50px;
+			height: 50px;
+			margin: 5px;
+			border: 1px solid black;
+			display: inline-block;
+			text-align: center;
+			font-size: 16px;
+			font-weight: bold;
+			color: white;
+			background-color: green;
+			cursor: pointer;
+		}
+
+		/* Styling for reserved seats */
+		.reserved {
+			background-color: red;
+			cursor: not-allowed;
+		}
+
+		/* Styling for selected seats */
+		.selected {
+			background-color: orange;
+		}
+	</style>
+</head>
+<body>
+	<h1>Train Seat Booking System</h1>
+	<p>Enter number of seats to book:</p>
+	<input type="number" id="numSeats">
+	<button onclick="bookSeats()">Book Seats</button>
+	<br><br>
+	<div id="seats">
+		<!-- Seats will be dynamically generated here -->
+	</div>
+
+	<script>
+		// Initialize variables
+		const numSeatsPerRow = 7;
+		const numRows = 11;
+		const seats = [];
+
+		// Generate seats array
+		for (let i = 0; i < numRows; i++) {
+			for (let j = 0; j < numSeatsPerRow; j++) {
+				if (i === numRows - 1 && j > 2) {
+					// Last row has only 3 seats
+					break;
+				}
+				seats.push({
+					row: i + 1,
+					seatNumber: j + 1,
+					available: true,
+					selected: false
+				});
+			}
+		}
+
+		// Function to display seats
+		function displaySeats() {
+			const seatsDiv = document.getElementById("seats");
+			seatsDiv.innerHTML = "";
+			for (let i = 0; i < seats.length; i++) {
+				const seat = seats[i];
+				const seatDiv = document.createElement("div");
+				seatDiv.classList.add("seat");
+				if (!seat.available) {
+					seatDiv.classList.add("reserved");
+				} else if (seat.selected) {
+					seatDiv.classList.add("selected");
+				}
+				seatDiv.innerHTML = seat.seatNumber;
+				seatDiv.addEventListener("click", function() {
+					if (seat.available) {
+						seat.selected = !seat.selected;
+						seatDiv.classList.toggle("selected");
+					}
+				});
+				seatsDiv.appendChild(seatDiv);
+				if (seat.seatNumber === numSeatsPerRow) {
+					seatsDiv.appendChild(document.createElement("br"));
+				}
+			}
+		}
+
+		// Function to book seats
+		function bookSeats() {
+			const numSeats = parseInt(document.getElementById("numSeats").value);
+			let numSeatsBooked = 0;
+			for (let i = 0; i < seats.length; i++) {
+				if (numSeatsBooked === numSeats) {
+					break;
+				}
+				if (seats[i].available) {
+					// Check if there are enough available seats in row
+					let numSeatsAvailableInRow = 0;
+					let startIndex = i;
+					for (let j = startIndex; j < startIndex + numSeatsPerRow; j++) {
+						if (seats[j] && seats[j].available && seats[j].row === seats[i].row) {
+						numSeatsAvailableInRow++;
+						if (numSeatsAvailableInRow === numSeats) {
+							// Book seats in this row
+							for (let k = startIndex; k < startIndex + numSeatsPerRow; k++) {
+								if (seats[k].available) {
+									seats[k].available = false;
+									numSeatsBooked++;
+									if (numSeatsBooked === numSeats) {
+										break;
+									}
+								}
+							}
+							break;
+						}
+					} else {
+						break;
+					}
+				}
+				// If enough seats not found in row, book nearby seats
+				if (numSeatsBooked < numSeats) {
+					for (let j = startIndex; j < seats.length; j++) {
+						if (numSeatsBooked === numSeats) {
+							break;
+						}
+						if (seats[j].available) {
+							seats[j].available = false;
+							numSeatsBooked++;
+							if (numSeatsBooked === numSeats) {
+								break;
+							}
+						}
+					}
+				}
+			}
+		}
+		displaySeats();
+	}
+
+	// Display initial seats
+	displaySeats();
+</script>
+</body>
+</html>
